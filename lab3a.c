@@ -184,7 +184,7 @@ void i_summary() {
             if (inode_type == 's' && ext2inode.i_blocks == 0) {
                 fprintf(outfd, "\n");
             }
-            else if (inode_type == 'f' || inode_type == 'd') {
+            else if (inode_type == 'f' || inode_type == 'd' || inode_type == 's') {
                 fprintf(outfd, ",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", ext2inode.i_block[0], ext2inode.i_block[1], ext2inode.i_block[2], ext2inode.i_block[3], ext2inode.i_block[4], ext2inode.i_block[5], ext2inode.i_block[6], ext2inode.i_block[7], ext2inode.i_block[8], ext2inode.i_block[9], ext2inode.i_block[10], ext2inode.i_block[11], ext2inode.i_block[12], ext2inode.i_block[13], ext2inode.i_block[14]);
             }
             else {
