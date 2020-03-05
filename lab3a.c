@@ -100,7 +100,7 @@ void bFree()
     {
       if(!((temp >> j) & 0x1))
         {
-          fprintf(outfd, "BFREE, %d\n", count);
+          fprintf(outfd, "BFREE,%d\n", count);
         }
       count++;
     }
@@ -130,7 +130,7 @@ void iFree()
         {
           if(!((temp >> j) & 0x1))
             {
-              fprintf(outfd, "IFREE, %d\n", count);
+              fprintf(outfd, "IFREE,%d\n", count);
             }
           count++;
         }
@@ -140,11 +140,11 @@ void iFree()
 
 void writetime(time_t t) {
     struct tm *info;
-    info = localtime(&t);
+    info = gmtime(&t);
     
-    int year = 1900 + info->tm_year;
-    
-    fprintf(outfd, "%d/%d/%d %d/%d/%d,", info->tm_mon, info->tm_mday, year, info->tm_hour, info->tm_min, info->tm_sec);
+    char buf[20];
+    strftime(buf, 20, "%02m/%02d/%02y %02H:%02M:%02S,", info);
+    fprintf(outfd, "%s", buf);
     
     return;
 }
@@ -184,7 +184,7 @@ void i_summary() {
             if (inode_type == 's' && ext2inode.i_blocks == 0) {
                 fprintf(outfd, "\n");
             }
-            else if (inode_type == 'f' || inode_type == 'd' || inode_type == 's') {
+            else if (inode_type == 'f' || inode_type == 'd') {
                 fprintf(outfd, ",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", ext2inode.i_block[0], ext2inode.i_block[1], ext2inode.i_block[2], ext2inode.i_block[3], ext2inode.i_block[4], ext2inode.i_block[5], ext2inode.i_block[6], ext2inode.i_block[7], ext2inode.i_block[8], ext2inode.i_block[9], ext2inode.i_block[10], ext2inode.i_block[11], ext2inode.i_block[12], ext2inode.i_block[13], ext2inode.i_block[14]);
             }
             else {
@@ -215,9 +215,9 @@ void directory_entries() {
                         break;
                     }
                         
-                    char outputstr[ext2dirent.rec_len - 5];
-                    snprintf(outputstr, ext2dirent.rec_len - 5, "\'%s\'", ext2dirent.name);
-                    fprintf(outfd, "DIRENT,%d,%d,%d,%d,%d,%s\n", i + 1, k, ext2dirent.inode, ext2dirent.rec_len, ext2dirent.name_len, outputstr);
+                    char outputstr[ext2dirent.rec_len - 7];
+                    snprintf(outputstr, ext2dirent.rec_len - 7, "%s", ext2dirent.name);
+                    fprintf(outfd, "DIRENT,%d,%d,%d,%d,%d,\'%s\'\n", i + 1, k, ext2dirent.inode, ext2dirent.rec_len, ext2dirent.name_len, outputstr);
                 }
             }
         }
