@@ -292,11 +292,14 @@ int main(int argc, const char * argv[]) {
       fprintf(stderr, "Failed to open the image file.\n");
       exit(1);
     }
-    
+
+    outfd = stdout;
+    /*
     outfd = fopen("output.csv", "w+");
     if (outfd == NULL) {
       sysError("Failed to create output csv file.");
     }
+    */
     
     superBlock();
     group_desc();
