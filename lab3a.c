@@ -254,20 +254,20 @@ void rec_indi(int block, int level, int parent_inode, int offset) {
 
 void indirect() {
     struct ext2_inode ext2inode;
-    fseek(imfd, (inode_bitmap + 1) * block_size, SEEK_SET);
     int i = 0;
     for (; i < inode_per_group; i ++) {
+	fseek(imfd, (inode_bitmap + 1) * block_size + i * 128, SEEK_SET);
         fread(&ext2inode, 128, 1, imfd);
-        if (ext2inode.i_mode != 0 && ((ext2inode.i_mode & 0x8000) == 0x8000 || (ext2inode.i_mode & 0x4000) == 0x4000)){
+        if (ext2inode.i_mode != 0 && ext2inode.i_links_count != 0 && ((ext2inode.i_mode & 0x8000) == 0x8000 || (ext2inode.i_mode & 0x4000) == 0x4000)){
             if (ext2inode.i_block[12] != 0) {
                 rec_indi(ext2inode.i_block[12], 1, i + 1, 12);
             }
-//            if (ext2inode.i_block[13] != 0) {
-//                rec_indi(ext2inode.i_block[13], 2, i + 1, 12 + 256);
-//            }
-//            if (ext2inode.i_block[14] != 0) {
-//                rec_indi(ext2inode.i_block[14], 3, i + 1, 12 + 256 + 256 * 256);
-//            }
+            if (ext2inode.i_block[13] != 0) {
+                rec_indi(ext2inode.i_block[13], 2, i + 1, 12 + 256);
+            }
+            if (ext2inode.i_block[14] != 0) {
+                rec_indi(ext2inode.i_block[14], 3, i + 1, 12 + 256 + 256 * 256);
+            }
         }
     }
 }
