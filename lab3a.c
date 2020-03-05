@@ -212,9 +212,9 @@ void directory_entries() {
                         break;
                     }
                         
-                    char outputstr[ext2dirent.rec_len - 5];
-                    snprintf(outputstr, ext2dirent.rec_len - 5, "\'%s\'", ext2dirent.name);
-                    fprintf(outfd, "DIRENT,%d,%d,%d,%d,%d,%s\n", i + 1, k, ext2dirent.inode, ext2dirent.rec_len, ext2dirent.name_len, outputstr);
+                    char outputstr[ext2dirent.rec_len - 7];
+                    snprintf(outputstr, ext2dirent.rec_len - 7, "%s", ext2dirent.name);
+                    fprintf(outfd, "DIRENT,%d,%d,%d,%d,%d,\'%s\'\n", i + 1, k, ext2dirent.inode, ext2dirent.rec_len, ext2dirent.name_len, outputstr);
                 }
             }
         }
