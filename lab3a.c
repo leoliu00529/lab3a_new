@@ -265,18 +265,28 @@ void indirect() {
 
 int main(int argc, const char * argv[]) {
     if (argc != 2) {
-      fprintf(stderr,"Invalid argument(s).");
+      fprintf(stderr,"Invalid argument(s).\n");
       exit(1);
     }
-    
+
+    /*
+    int length = strlen(argv[1]);
+    if(length <= 4 || strcmp(argv[1]+(length-4), ".img"))
+      {
+	fprintf(stderr, "Invalid argument(s).\n");
+	exit(1);
+      }
+    */
+
     imfd = fopen(argv[1], "r");
     if (imfd == NULL) {
-        sysError("Failed to open the image file.");
+      fprintf(stderr, "Failed to open the image file.\n");
+      exit(1);
     }
     
     outfd = fopen("output.csv", "w+");
     if (outfd == NULL) {
-        sysError("Failed to create output csv file.");
+      sysError("Failed to create output csv file.");
     }
     
     superBlock();
