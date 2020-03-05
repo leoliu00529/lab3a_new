@@ -28,6 +28,7 @@ int first_nonres_ino;
 
 int inode_table;
 
+
 void sysError(char * message) {
     fprintf(stderr, "%s\n", message);
     exit(2);
@@ -139,10 +140,12 @@ void iFree()
 
 void writetime(time_t t) {
     struct tm *info;
-    info = gmtime(&t);
-    char buf[21];
-    strftime(buf, 21, "%02m/%02d/%02y %02H:%02M:%02S,", info);
-    fprintf(outfd, "%s", buf);
+    info = localtime(&t);
+    
+    int year = 1900 + info->tm_year;
+    
+    fprintf(outfd, "%d/%d/%d %d/%d/%d,", info->tm_mon, info->tm_mday, year, info->tm_hour, info->tm_min, info->tm_sec);
+    
     return;
 }
 
@@ -181,7 +184,7 @@ void i_summary() {
             if (inode_type == 's' && ext2inode.i_blocks == 0) {
                 fprintf(outfd, "\n");
             }
-            else if (inode_type == 'f' || inode_type == 'd') {
+            else if (inode_type == 'f' || inode_type == 'd' || inode_type == 's') {
                 fprintf(outfd, ",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", ext2inode.i_block[0], ext2inode.i_block[1], ext2inode.i_block[2], ext2inode.i_block[3], ext2inode.i_block[4], ext2inode.i_block[5], ext2inode.i_block[6], ext2inode.i_block[7], ext2inode.i_block[8], ext2inode.i_block[9], ext2inode.i_block[10], ext2inode.i_block[11], ext2inode.i_block[12], ext2inode.i_block[13], ext2inode.i_block[14]);
             }
             else {
@@ -212,9 +215,9 @@ void directory_entries() {
                         break;
                     }
                         
-                    char outputstr[ext2dirent.rec_len - 7];
-                    snprintf(outputstr, ext2dirent.rec_len - 7, "%s", ext2dirent.name);
-                    fprintf(outfd, "DIRENT,%d,%d,%d,%d,%d,\'%s\'\n", i + 1, k, ext2dirent.inode, ext2dirent.rec_len, ext2dirent.name_len, outputstr);
+                    char outputstr[ext2dirent.rec_len - 5];
+                    snprintf(outputstr, ext2dirent.rec_len - 5, "\'%s\'", ext2dirent.name);
+                    fprintf(outfd, "DIRENT,%d,%d,%d,%d,%d,%s\n", i + 1, k, ext2dirent.inode, ext2dirent.rec_len, ext2dirent.name_len, outputstr);
                 }
             }
         }
@@ -227,7 +230,7 @@ void rec_indi(int block, int level, int parent_inode, int offset) {
     int address[256];
     int i;
     for (i = 0; i < 256; i ++) {
-        fread(&address[i], 8, 1, imfd);
+        fread(&address[i], 4, 1, imfd);
     }
     for (i = 0; i < 256; i ++) {
         if (address[i] != 0) {
@@ -237,7 +240,15 @@ void rec_indi(int block, int level, int parent_inode, int offset) {
             }
         }
         
-        offset += 256 ^ (level - 1);
+        if (level == 1) {
+            offset ++;
+        }
+        else if (level == 2) {
+            offset += 256;
+        }
+        else {
+            offset += 256 * 256;
+        }
     }
 }
 
@@ -247,15 +258,15 @@ void indirect() {
     int i = 0;
     for (; i < inode_per_group; i ++) {
         fread(&ext2inode, 128, 1, imfd);
-        if ((ext2inode.i_mode & 0x8000) == 0x8000 || (ext2inode.i_mode & 0x4000) == 0x4000){
+        if (ext2inode.i_mode != 0 && ((ext2inode.i_mode & 0x8000) == 0x8000 || (ext2inode.i_mode & 0x4000) == 0x4000)){
             if (ext2inode.i_block[12] != 0) {
                 rec_indi(ext2inode.i_block[12], 1, i + 1, 12);
             }
 //            if (ext2inode.i_block[13] != 0) {
-//                rec_indi(ext2inode.i_block[13], 2, i + 1, 12);
+//                rec_indi(ext2inode.i_block[13], 2, i + 1, 12 + 256);
 //            }
 //            if (ext2inode.i_block[14] != 0) {
-//                rec_indi(ext2inode.i_block[14], 3, i + 1, 12);
+//                rec_indi(ext2inode.i_block[14], 3, i + 1, 12 + 256 + 256 * 256);
 //            }
         }
     }
